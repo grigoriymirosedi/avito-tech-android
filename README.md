@@ -1,6 +1,6 @@
 **Avito-tech-android Project**
 
-**Для работы проекта необходимо в local.properties добавить свой token.**
+**Для работы проекта необходимо в local.properties добавить AVITO_TECH_TOKEN=*свой токен***
 
 Используемый стэк:
 - Compose
