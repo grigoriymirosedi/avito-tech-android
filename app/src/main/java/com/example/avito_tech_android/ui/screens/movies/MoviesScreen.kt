@@ -1,6 +1,8 @@
 package com.example.avito_tech_android.ui.screens.movies
 
+import android.os.Bundle
 import android.util.Log
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -26,29 +28,33 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.navigation.NavController
+import androidx.navigation.navArgument
+import androidx.paging.LoadState
+import androidx.paging.compose.collectAsLazyPagingItems
+import androidx.paging.compose.items
 import androidx.room.util.query
 import com.example.avito_tech_android.core.State
 import com.example.avito_tech_android.core.Status
+import com.example.avito_tech_android.data.dto.toMovie
+import com.example.avito_tech_android.ui.utils.Screens
 import com.google.android.material.chip.ChipGroup
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MoviesScreen(
-    modifier: Modifier,
+    modifier: Modifier = Modifier,
+    navController: NavController,
     viewModel: MovieViewModel = hiltViewModel(),
 ) {
 
     val searchText = viewModel.searchText.collectAsState()
     val isSearching = viewModel.isSearching.collectAsState()
 
-    var isYearFilterCheapEnabled by remember { mutableStateOf(false) }
-    var isAgeFilterCheapEnabled by remember { mutableStateOf(false) }
-
     val filterByYear = viewModel.filterByYear.collectAsState()
     val filterByAge = viewModel.filterByAge.collectAsState()
 
-    val screenState = viewModel.screenState.collectAsState()
-    val moviesList = viewModel.movies.collectAsState()
+    val moviesList = viewModel.movies.collectAsLazyPagingItems()
 
     Scaffold(topBar = {
         SearchBar(
@@ -62,45 +68,94 @@ fun MoviesScreen(
                 .padding(vertical = 10.dp)
         ) {}
     }) {
-
-        if (screenState.value.status == Status.LOADING) {
-            CircularProgressIndicator(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(16.dp)
-                    .wrapContentSize(Alignment.Center)
-            )
-        }
-
         Column(modifier = Modifier.padding(it)) {
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-            ) {
-                FilterChip(
-                    selected = filterByYear.value,
-                    onClick = {
-                        viewModel.handleYearFilter()
-                    },
-                    label = { Text("Год выпуска") }
-                )
-                FilterChip(
-                    selected = filterByAge.value,
-                    onClick = {
-                        viewModel.handleAgeFilter()
-                    },
-                    label = { Text("Возрастное ограничение") })
-            }
-
 
             LazyColumn(
                 verticalArrangement = Arrangement.spacedBy(10.dp),
             ) {
-                items(moviesList.value.data ?: emptyList()) { movie ->
-                    MovieCard(movieModel = movie)
+                items(
+                    items = moviesList, key = { it.id }
+                ) { movie ->
+                    MovieCard(
+                        movieModel = movie!!.toMovie(),
+                        modifier = Modifier.clickable {
+                            val movieArg = movie.toMovie()
+                            val bundle = Bundle().apply{
+                                putParcelable("movieModel", movieArg)
+                            }
+                            Log.d("Bundle:" , bundle.toString())
+                            navController.currentBackStackEntry?.savedStateHandle?.apply {
+                                set("movieModel", movie.toMovie())
+                            }
+                            navController.navigate(Screens.MovieDetails.route)
+                        }
+                    )
+                }
+
+                moviesList.apply {
+                    when (loadState.refresh) { //FIRST LOAD
+                        is LoadState.Error -> {
+                            //TODO Error Item
+                            //state.error to get error message
+                        }
+
+                        is LoadState.Loading -> { // Loading UI
+                            item {
+                                Column(
+                                    modifier = Modifier
+                                        .fillParentMaxSize(),
+                                    horizontalAlignment = Alignment.CenterHorizontally,
+                                    verticalArrangement = Arrangement.Center,
+                                ) {
+                                    Text(
+                                        modifier = Modifier
+                                            .padding(8.dp),
+                                        text = "Refresh Loading"
+                                    )
+
+                                    CircularProgressIndicator(
+                                        modifier = Modifier
+                                            .fillMaxSize()
+                                            .padding(16.dp)
+                                            .wrapContentSize(Alignment.Center)
+                                    )
+                                }
+                            }
+                        }
+
+                        else -> {}
+                    }
+
+                    when (loadState.append) { // Pagination
+                        is LoadState.Error -> {
+                            //TODO Pagination Error Item
+                            //state.error to get error message
+                        }
+
+                        is LoadState.Loading -> { // Pagination Loading UI
+                            item {
+                                Column(
+                                    modifier = Modifier
+                                        .fillMaxWidth(),
+                                    horizontalAlignment = Alignment.CenterHorizontally,
+                                    verticalArrangement = Arrangement.Center,
+                                ) {
+                                    Text(text = "Pagination Loading")
+
+                                    CircularProgressIndicator(
+                                        modifier = Modifier
+                                            .fillMaxSize()
+                                            .padding(16.dp)
+                                            .wrapContentSize(Alignment.Center)
+                                    )
+                                }
+                            }
+                        }
+
+                        else -> {}
+                    }
                 }
             }
         }
-
     }
 }

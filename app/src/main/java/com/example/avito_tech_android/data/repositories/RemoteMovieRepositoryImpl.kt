@@ -1,19 +1,41 @@
 package com.example.avito_tech_android.data.repositories
 
+import androidx.paging.Pager
+import androidx.paging.PagingConfig
+import androidx.paging.PagingData
+import com.example.avito_tech_android.data.dto.Movies
 import com.example.avito_tech_android.data.dto.MoviesDTO
+import com.example.avito_tech_android.data.paging.MovieByNamePagingSource
+import com.example.avito_tech_android.data.paging.MoviePagingSource
 import com.example.avito_tech_android.data.repositories.api.ApiInterface
 import com.example.avito_tech_android.domain.repositories.RemoteMovieRepository
+import kotlinx.coroutines.flow.Flow
 import javax.inject.Inject
 
-class RemoteMovieRepositoryImpl @Inject constructor(private val api: ApiInterface): RemoteMovieRepository {
-    override suspend fun fetchAllMovies(
+class RemoteMovieRepositoryImpl @Inject constructor(private val api: ApiInterface) :
+    RemoteMovieRepository {
+    override fun fetchAllMovies(
         sortField: List<String>?,
         sortType: List<String>?,
-    ): MoviesDTO {
-        return api.getMovies(sortField = sortField, sortType = sortType)
+    ): Flow<PagingData<Movies>> {
+        return Pager(
+            config = PagingConfig(
+                pageSize = 20,
+            ),
+            pagingSourceFactory = {
+                MoviePagingSource(movieApi = api)
+            }
+        ).flow
     }
 
-    override suspend fun fetchMoviesByName(name: String): MoviesDTO {
-        return api.getMovieByName(movieName = name)
+    override fun fetchMoviesByName(name: String): Flow<PagingData<Movies>> {
+        return Pager(
+            config = PagingConfig(
+                pageSize = 20,
+            ),
+            pagingSourceFactory = {
+                MovieByNamePagingSource(movieApi = api, name = name)
+            }
+        ).flow
     }
 }

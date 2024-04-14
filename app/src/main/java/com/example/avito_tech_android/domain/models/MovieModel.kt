@@ -1,5 +1,9 @@
 package com.example.avito_tech_android.domain.models
 
+import android.os.Parcelable
+import kotlinx.android.parcel.Parcelize
+
+@Parcelize
 data class MovieModel(
     val id: Int,
     val name: String,
@@ -9,4 +13,4 @@ data class MovieModel(
     val description: String,
     val countries: String,
     val poster: PosterModel
-)
+): Parcelable

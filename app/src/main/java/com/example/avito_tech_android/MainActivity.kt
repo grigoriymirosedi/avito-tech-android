@@ -10,6 +10,8 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.navigation.compose.rememberNavController
+import com.example.avito_tech_android.ui.screens.MainScreen
 import com.example.avito_tech_android.ui.screens.movies.MoviesScreen
 import com.example.avito_tech_android.ui.theme.AvitotechandroidTheme
 import dagger.hilt.android.AndroidEntryPoint
@@ -18,9 +20,10 @@ import dagger.hilt.android.AndroidEntryPoint
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
         setContent {
             AvitotechandroidTheme {
-                MoviesScreen(modifier = Modifier.fillMaxSize())
+                MainScreen()
             }
         }
     }
