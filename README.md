@@ -1,5 +1,7 @@
 **Avito-tech-android Project**
 
+**Для работы проекта необходимо в local.properties добавить свой token.**
+
 Используемый стэк:
 - Compose
 - Material Design
